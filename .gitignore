@@ -1,5 +1,12 @@
-/work/.ipynb_checkpoints
-/work/bk/*
-/work/dl_katakana/2_notebook/.ipynb_checkpoints
-/work/dl_katakana/2_notebook/__pycache__
-/work/dl_katakana/2_notebook/mlruns
+# /work/.ipynb_checkpoints
+# /work/*/__pycache__
+*__pycache__/
+*.ipynb_checkpoints/
+*mlruns/
+*bk/
+# /work/bk/*
+# /work/dl_katakana/2_notebook/.ipynb_checkpoints
+# /work/dl_katakana/2_notebook/bk
+# /work/dl_katakana/2_notebook/__pycache__
+# /work/dl_katakana/2_notebook/mlruns
+# /work/dl_skillupai/Day2/.ipynb_checkpoints
