@@ -1,0 +1,28 @@
+version: '3'
+services:
+  jupyterlab:
+    platform: 'linux/amd64'
+    build:
+      context: ./jupyterlab #Dockerfileの置き場
+    volumes:
+      - ./work/:/home/jovyan/work
+    ports:
+      - 8885:8888
+    depends_on: 
+      - mlflow
+    environment:
+      JUPYTER_PASS: password
+      MLFLOW_TRACKING_URI: 'http://mlflow:5000'
+
+  mlflow:
+    build:
+      context: ./mlflow-tracking
+      dockerfile: Dockerfile
+    # command: mlflow server --backend-store-uri /home/mlruns --host 0.0.0.0 --port 5005
+    command: mlflow server --host 0.0.0.0 --port 5000
+    # container_name: mlflow
+    ports:
+      - "5000:5000"
+    restart: always
+    # volumes:
+    #   - ./mlruns:/home/mlruns
