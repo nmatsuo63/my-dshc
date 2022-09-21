@@ -1,0 +1,5 @@
+
+本プログラムの一部には、下記のソフトウェアを用いています。
+
+https://github.com/icoxfog417/baby-steps-of-rl-ja/blob/master/LICENSE
+icoxfog417/baby-steps-of-rl-ja is licensed under the Apache License 2.0
