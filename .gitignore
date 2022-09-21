@@ -5,6 +5,7 @@
 *mlruns/
 *bk/
 *mlflow
+*.pickle
 # *2_submit
 # /work/bk/*
 # /work/dl_katakana/2_notebook/.ipynb_checkpoints
