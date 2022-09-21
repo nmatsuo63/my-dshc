@@ -61,6 +61,7 @@ class RMSProp:
         lr : 学習係数 learning rate
         rho : 減衰率
         """
+        print("layers.RMSPropのrho", rho)
         self.lr = lr
         self.h = None
         self.rho = rho

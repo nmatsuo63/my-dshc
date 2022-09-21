@@ -2,6 +2,7 @@
 import numpy as np
 from common.functions import *
 from collections import OrderedDict
+from common.util import im2col, col2im
 
 def numerical_gradient(f, x, W, t):
     """
@@ -424,4 +425,166 @@ class TwoLayerNet:
         grads['W2'] = numerical_gradient(f, x, self.params['W2'], t)
         grads['b2'] = numerical_gradient(f, x, self.params['b2'], t)
 
-        return grads    
+        return grads
+    
+
+###########################
+# 以下、CNN用に追加したlayers
+###########################
+
+class Convolution:
+    def __init__(self, W, b, stride=1, pad=0):
+        self.W = W # フィルターの重み(配列形状:フィルターの枚数, チャンネル数, フィルターの高さ, フィルターの幅)
+        self.b = b #フィルターのバイアス
+        self.stride = stride # ストライド数
+        self.pad = pad # パディング数
+        
+        # インスタンス変数の宣言
+        self.x = None   
+        self.col = None
+        self.col_W = None
+        self.dcol = None
+        self.dW = None
+        self.db = None
+
+    def forward(self, x):
+        """
+        順伝播計算
+        x : 入力(配列形状=(データ数, チャンネル数, 高さ, 幅))
+        """
+        FN, C, FH, FW = self.W.shape
+        N, C, H, W = x.shape
+        out_h = (H + 2*self.pad - FH) // self.stride + 1 # 出力の高さ(端数は切り捨てる)
+        out_w =(W + 2*self.pad - FW) // self.stride + 1# 出力の幅(端数は切り捨てる)
+
+        # 畳み込み演算を効率的に行えるようにするため、入力xを行列colに変換する
+        col = im2col(x, FH, FW, self.stride, self.pad)
+        
+        # 重みフィルターを2次元配列に変換する
+        # col_Wの配列形状は、(C*FH*FW, フィルター枚数)
+        col_W = self.W.reshape(FN, -1).T
+
+        # 行列の積を計算し、バイアスを足す
+        out = np.dot(col, col_W) + self.b
+        
+        # 画像形式に戻して、チャンネルの軸を2番目に移動させる
+        out = out.reshape(N, out_h, out_w, -1).transpose(0, 3, 1, 2)
+
+        self.x = x
+        self.col = col
+        self.col_W = col_W
+
+        return out
+
+    def backward(self, dout):
+        """
+        逆伝播計算
+        Affineレイヤと同様の考え方で、逆伝播させる
+        dout : 出力層側の勾配
+        return : 入力層側へ伝える勾配
+        """
+        FN, C, FH, FW = self.W.shape
+        
+        # doutのチャンネル数軸を4番目に移動させ、2次元配列に変換する
+        dout = dout.transpose(0,2,3,1).reshape(-1, FN)
+
+        # バイアスbはデータ数方向に総和をとる
+        self.db = np.sum(dout, axis=0)
+        
+        # 重みWは、入力である行列colと行列doutの積になる
+        self.dW = np.dot(self.col.T, dout)
+        
+        # (フィルター数, チャンネル数, フィルター高さ、フィルター幅)の配列形状に戻す
+        self.dW = self.dW.transpose(1, 0).reshape(FN, C, FH, FW)
+
+        # 入力側の勾配は、doutにフィルターの重みを掛けて求める
+        dcol = np.dot(dout, self.col_W.T)
+        
+        # 勾配を4次元配列(データ数, チャンネル数, 高さ, 幅)に変換する
+        dx = col2im(dcol, self.x.shape, FH, FW, self.stride, self.pad, is_backward=True)
+
+        self.dcol = dcol # 結果を確認するために保持しておく
+            
+        return dx
+    
+    
+class MaxPooling:
+    def __init__(self, pool_h, pool_w, stride=1, pad=0):
+
+        self.pool_h = pool_h # プーリングを適応する領域の高さ
+        self.pool_w = pool_w # プーリングを適応する領域の幅
+        self.stride = stride # ストライド数
+        self.pad = pad # パディング数
+
+        # インスタンス変数の宣言
+        self.x = None
+        self.arg_max = None
+        self.col = None
+        self.dcol = None
+        
+            
+    def forward(self, x):
+        """
+        順伝播計算
+        x : 入力(配列形状=(データ数, チャンネル数, 高さ, 幅))
+        """        
+        N, C, H, W = x.shape
+        
+        # 出力サイズ
+        out_h = (H  + 2*self.pad - self.pool_h) // self.stride + 1 # 出力の高さ(端数は切り捨てる)
+        out_w = (W + 2*self.pad - self.pool_w) // self.stride + 1# 出力の幅(端数は切り捨てる)    
+        
+        # プーリング演算を効率的に行えるようにするため、2次元配列に変換する
+        # パディングする値は、マイナスの無限大にしておく
+        col = im2col(x, self.pool_h, self.pool_w, self.stride, self.pad, constant_values=-np.inf)
+        
+        # チャンネル方向のデータが横に並んでいるので、縦に並べ替える
+        # 変換後のcolの配列形状は、(N*C*out_h*out_w, H*W)になる 
+        col = col.reshape(-1, self.pool_h*self.pool_w)
+
+        # 最大値のインデックスを求める
+        # この結果は、逆伝播計算時に用いる
+        arg_max = np.argmax(col, axis=1)
+        
+        # 最大値を求める
+        out = np.max(col, axis=1)
+        
+        # 画像形式に戻して、チャンネルの軸を2番目に移動させる
+        out = out.reshape(N, out_h, out_w, C).transpose(0, 3, 1, 2)
+
+        self.x = x
+        self.col = col
+        self.arg_max = arg_max
+
+        return out
+
+    def backward(self, dout):
+        """
+        逆伝播計算
+        マックスプーリングでは、順伝播計算時に最大値となった場所だけに勾配を伝える
+        順伝播計算時に最大値となった場所は、self.arg_maxに保持されている        
+        dout : 出力層側の勾配
+        return : 入力層側へ伝える勾配
+        """        
+        
+        # doutのチャンネル数軸を4番目に移動させる
+        dout = dout.transpose(0, 2, 3, 1)
+        
+        # プーリング適応領域の要素数(プーリング適応領域の高さ × プーリング適応領域の幅)
+        pool_size = self.pool_h * self.pool_w
+        
+        # 勾配を入れる配列を初期化する
+        # dcolの配列形状 : (doutの全要素数, プーリング適応領域の要素数) 
+        # doutの全要素数は、dout.size で取得できる
+        dcol = np.zeros((dout.size, pool_size))
+        
+        # 順伝播計算時に最大値となった場所に、doutを配置する
+        # dout.flatten()はdoutを1次元配列に変換している
+        dcol[np.arange(dcol.shape[0]), self.arg_max] = dout.flatten()
+        
+        # 勾配を4次元配列(データ数, チャンネル数, 高さ, 幅)に変換する
+        dx = col2im(dcol, self.x.shape, self.pool_h, self.pool_w, self.stride, self.pad, is_backward=True)
+        
+        self.dcol = dcol # 結果を確認するために保持しておく
+        
+        return dx
