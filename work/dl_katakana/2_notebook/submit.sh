@@ -14,6 +14,7 @@ cp -r submit_katakana.ipynb 1_compress
 cp -r train_4_7.ipynb 1_compress 
 cp -r util.py 1_compress 
 
+mv ./1_compress/train*.ipynb ./1_compress/train.ipynb
 zip -r dl_tokyo_m_2022_submit_katakana_MATSUO_NAOYA_2022yymm_n.zip 1_compress 
 
 mv dl_tokyo_m_2022_submit_katakana_MATSUO_NAOYA_2022yymm_n.zip ~/Downloads/

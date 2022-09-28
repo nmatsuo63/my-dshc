@@ -8,7 +8,6 @@ from common.gradient import numerical_gradient
 
 class MultiLayerNetExtend:
     """拡張版の全結合による多層ニューラルネットワーク
-    
     Weiht Decay、Dropout、Batch Normalizationの機能を持つ
     Parameters
     ----------
