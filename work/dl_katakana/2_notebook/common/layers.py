@@ -126,6 +126,9 @@ class SoftmaxWithLoss:
         """
         self.t = t
         self.y = softmax(x)
+        # print("SoftmaxWithLossデバッグ中")
+        # print("x.shape", x.shape)
+        # print("t.shape", t.shape)
         self.loss = cross_entropy_error(self.y, self.t)
         
         return self.loss
@@ -619,7 +622,7 @@ class SimpleConvNet:
         pool_pad = pool_param['pad']
         pool_stride = pool_param['stride']
         
-        input_size = input_dim[1]：：
+        input_size = input_dim[1]
         conv_output_size = (input_size + 2*filter_pad - filter_size) // filter_stride + 1 # 畳み込み後のサイズ(H,W共通)
         # 4_6_を参考にすると、pool_output_size=out_h、
         pool_output_size = (conv_output_size + 2*pool_pad - pool_size) // pool_stride + 1 # プーリング後のサイズ(H,W共通)
@@ -661,6 +664,9 @@ class SimpleConvNet:
         x : 入力データ; t : 教師データ(ラベル)
         """
         y = self.predict(x)
+        # print("layers.py/SimpleConvNetのデバッグ")
+        # print("x.shape", x.shape)
+        # print("t.shape", t.shape)
         return self.last_layer.forward(y, t)
 
     def accuracy(self, x, t, batch_size=100):

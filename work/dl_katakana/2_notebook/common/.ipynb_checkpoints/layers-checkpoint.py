@@ -126,6 +126,9 @@ class SoftmaxWithLoss:
         """
         self.t = t
         self.y = softmax(x)
+        # print("SoftmaxWithLossデバッグ中")
+        # print("x.shape", x.shape)
+        # print("t.shape", t.shape)
         self.loss = cross_entropy_error(self.y, self.t)
         
         return self.loss
@@ -600,6 +603,8 @@ class SimpleConvNet:
                  pool_param={'pool_size':2, 'pad':0, 'stride':2},
                  hidden_size=100, output_size=10, weight_init_std=0.01, batch_size=100):
         """
+        conv - relu - pool - affine - relu - affine - softmax
+        -------------------------------
         input_size : tuple, 入力の配列形状(チャンネル数、画像の高さ、画像の幅)
         conv_param : dict, 畳み込みの条件
         pool_param : dict, プーリングの条件
@@ -629,18 +634,17 @@ class SimpleConvNet:
         self.params = {}
         std = weight_init_std
         # Day3のp29において、filter_num=FN, input_dim[0]=C, filter_size=FH=FW
-        self.params['W1'] = std * np.random.randn(filter_num, input_dim[0], filter_size, filter_size) # W1は畳み込みフィルターの重みになる
-        self.params['b1'] = np.zeros(filter_num) #b1は畳み込みフィルターのバイアスになる
-        self.params['W2'] = std *  np.random.randn(pool_output_pixel, hidden_size)
+        self.params['W1'] = std * np.random.randn(filter_num, input_dim[0], filter_size, filter_size) 
+        self.params['b1'] = np.zeros(filter_num)
+        self.params['W2'] = std * np.random.randn(pool_output_pixel, hidden_size)
         self.params['b2'] = np.zeros(hidden_size)
-        self.params['W3'] = std *  np.random.randn(hidden_size, output_size)
+        self.params['W3'] = std * np.random.randn(hidden_size, output_size)
         self.params['b3'] = np.zeros(output_size)
 
         # レイヤの生成
         self.layers = OrderedDict()
-        # Day3 p20を参考に、畳み込み層→活性化関数→プーリング層→全結合層→活性化関数→全結合層→ソフトマックス関数
         self.layers['Conv1'] = Convolution(self.params['W1'], self.params['b1'],
-                                           conv_param['stride'], conv_param['pad']) # W1が畳み込みフィルターの重み, b1が畳み込みフィルターのバイアスになる
+                                           conv_param['stride'], conv_param['pad']) 
         self.layers['ReLU1'] = ReLU()
         self.layers['Pool1'] = MaxPooling(pool_h=pool_size, pool_w=pool_size, stride=pool_stride, pad=pool_pad)
         self.layers['Affine1'] = Affine(self.params['W2'], self.params['b2'])
@@ -656,17 +660,16 @@ class SimpleConvNet:
         return x
 
     def loss(self, x, t):
-        """
-        損失関数
-        x : 入力データ
-        t : 教師データ
+        """損失関数を求める
+        x : 入力データ; t : 教師データ(ラベル)
         """
         y = self.predict(x)
+        # print("layers.py/SimpleConvNetのデバッグ")
+        # print("x.shape", x.shape)
+        # print("t.shape", t.shape)
         return self.last_layer.forward(y, t)
 
     def accuracy(self, x, t, batch_size=100):
-        # print("SimpleConvNet.accuracyのbatch_size", batch_size)
-        # batch_size = self.batch_size
         if t.ndim != 1 : t = np.argmax(t, axis=1)
         
         acc = 0.0
@@ -686,6 +689,7 @@ class SimpleConvNet:
         ----------
         x : 入力データ
         t : 教師データ
+        
         Returns
         -------
         各層の勾配を持ったディクショナリ変数
