@@ -32,7 +32,9 @@ class DeepConvNet:
         self.params = {}
         pre_channel_num = input_dim[0]
         for idx, conv_param in enumerate([conv_param_1, conv_param_2, conv_param_3, conv_param_4, conv_param_5, conv_param_6]):
-            self.params['W' + str(idx+1)] = weight_init_scales[idx] * np.random.randn(conv_param['filter_num'], pre_channel_num, conv_param['filter_size'], conv_param['filter_size'])
+            self.params['W' + str(idx+1)] = weight_init_scales[idx] * np.random.randn(conv_param['filter_num'], 
+                                                                                      pre_channel_num, conv_param['filter_size'],
+                                                                                      conv_param['filter_size'])
             self.params['b' + str(idx+1)] = np.zeros(conv_param['filter_num'])
             pre_channel_num = conv_param['filter_num']
         self.params['W7'] = weight_init_scales[6] * np.random.randn(64*4*4, hidden_size)
@@ -72,7 +74,9 @@ class DeepConvNet:
         self.last_layer = SoftmaxWithLoss()
 
     def predict(self, x, train_flg=False):
+        # print("deep_convnet/predictのデバッグ")
         for layer in self.layers:
+            # print(layer, "（deep_convnet/predictのデバッグ中）")
             if isinstance(layer, Dropout):
                 x = layer.forward(x, train_flg)
             else:
@@ -80,8 +84,8 @@ class DeepConvNet:
         return x
 
     def loss(self, x, t):
+        # print("deep_convnet/lossのデバッグ")
         y = self.predict(x, train_flg=True)
-        # print("deep_convnet.pyのデバッグ")
         # print("x.shape", x.shape)
         # print("t.shape", t.shape)
         return self.last_layer.forward(y, t)

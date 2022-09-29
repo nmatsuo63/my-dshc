@@ -51,17 +51,21 @@ class Trainer:
         # print("trainer.pyのデバッグ")
         # print("x_batch.shape", x_batch.shape)
         # print("t_batch.shape", t_batch.shape)
+
         # 勾配計算
         grads = self.network.gradient(x_batch, t_batch)
+        # print("勾配計算完了")
         # 更新
         self.optimizer.update(self.network.params, grads)
+        # print("更新計算完了")
         # 損失関数を計算
         loss = self.network.loss(x_batch, t_batch)
+        # print("損失関数計算完了")
         # # 損失量をリストに追加
         # self.train_loss_list.append(loss)
+
         # verbose（詳細）を出力するか否か
-        # if self.verbose: print("train loss:" + str(loss))
-        self.verbose=False
+        # self.verbose=False
         if self.verbose: print(f'現在のiteration数：{self.current_iter}, 訓練データの誤差：{loss:.3}')
         
         # エポックに分割
@@ -71,6 +75,7 @@ class Trainer:
             # 学習データと検証データを設定
             x_train_sample, t_train_sample = self.x_train, self.t_train
             x_test_sample, t_test_sample = self.x_test, self.t_test
+            
             # エポックごとのサンプル数を評価する
             if not self.evaluate_sample_num_per_epoch is None:
                 t = self.evaluate_sample_num_per_epoch
@@ -79,23 +84,29 @@ class Trainer:
                 
             # 訓練データの精度を計算する
             train_acc = self.network.accuracy(x_train_sample, t_train_sample)
+            # print("train_acc　計算完了")
             train_loss = self.network.loss(x_train_sample, t_train_sample)
+            # print("train_loss　計算完了")
+            
             # 検証データの精度を計算する
             test_acc = self.network.accuracy(x_test_sample, t_test_sample)
+            # print("test_acc　計算完了")
             test_loss = self.network.loss(x_test_sample, t_test_sample)
-            # 精度を記録する
+            # print("test_loss　計算完了")
+            
+            # 精度と誤差をリストに記録する
             self.train_acc_list.append(train_acc); self.test_acc_list.append(test_acc)
-            # 誤差をリストに追加
             self.train_loss_list.append(train_loss); self.test_loss_list.append(test_loss)
             
             # verbose（詳細）を出力するか否か
-            # if self.verbose: print("=== epoch:" + str(self.current_epoch) + ", train acc:" + str(train_acc) + ", test acc:" + str(test_acc) + " ===")
-            if self.verbose: print(f'==epoch:{self.current_epoch}, train_acc:{train_acc:.3}, test_acc:{test_acc:.3}==')
+            if self.verbose: 
+                print(f'==epoch:{self.current_epoch}（全{self.max_iter}回）, train_acc:{train_acc:.3}, test_acc:{test_acc:.3}==')
         self.current_iter += 1
 
     def train(self):
         # 最後のエポックまでの総iter回tra_step()を実行する
         for i in range(self.max_iter):
+            # print(f'train{i}回目（全{self.max_iter}回）')
             self.train_step()
 
         test_acc = self.network.accuracy(self.x_test, self.t_test)

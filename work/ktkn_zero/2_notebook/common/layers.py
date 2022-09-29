@@ -104,6 +104,7 @@ class Dropout:
         self.mask = None
 
     def forward(self, x, train_flg=True):
+        # print("layers/Dropout/forwardデバッグ中")
         if train_flg:
             self.mask = np.random.rand(*x.shape) > self.dropout_ratio
             return x * self.mask
