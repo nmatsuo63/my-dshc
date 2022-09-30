@@ -7,6 +7,11 @@ from common.util import im2col, col2im
 class Relu:
     def __init__(self):
         self.mask = None
+        
+        # 追加
+        # 重み・バイアスパラメータの勾配
+        self.dW = None
+        self.db = None
 
     def forward(self, x):
         self.mask = (x <= 0)
@@ -136,6 +141,11 @@ class BatchNormalization:
         self.dgamma = None
         self.dbeta = None
 
+        # 追加
+        # 重み・バイアスパラメータの勾配
+        self.dW = None
+        self.db = None
+        
     def forward(self, x, train_flg=True):
         self.input_shape = x.shape
         if x.ndim != 2:
