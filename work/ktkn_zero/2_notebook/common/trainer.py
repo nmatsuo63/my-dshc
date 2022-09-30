@@ -101,7 +101,7 @@ class Trainer:
             
             # verbose（詳細）を出力するか否か
             if self.verbose: 
-                print(f'==epoch:{self.current_epoch}（全{epochs}回）, train_acc:{train_acc:.3}, test_acc:{test_acc:.3}==')
+                print(f'==epoch:{self.current_epoch}, train_acc:{train_acc:.3}, test_acc:{test_acc:.3}==')
         self.current_iter += 1
 
     def train(self):
