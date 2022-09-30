@@ -66,7 +66,8 @@ class Trainer:
 
         # verbose（詳細）を出力するか否か
         # self.verbose=False
-        if self.verbose: print(f'現在のiteration数：{self.current_iter}, 訓練データの誤差：{loss:.3}')
+        if self.verbose: 
+            print(f'進捗：{self.current_iter / self.max_iter:.1%}, 訓練データの誤差：{loss:.3}')
         
         # エポックに分割
         if self.current_iter % self.iter_per_epoch == 0:
@@ -100,7 +101,7 @@ class Trainer:
             
             # verbose（詳細）を出力するか否か
             if self.verbose: 
-                print(f'==epoch:{self.current_epoch}（全{self.max_iter}回）, train_acc:{train_acc:.3}, test_acc:{test_acc:.3}==')
+                print(f'==epoch:{self.current_epoch}（全{epochs}回）, train_acc:{train_acc:.3}, test_acc:{test_acc:.3}==')
         self.current_iter += 1
 
     def train(self):
